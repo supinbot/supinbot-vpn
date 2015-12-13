@@ -5,8 +5,8 @@ var async = require('async');
 var path = require('path');
 var fs = require('fs');
 
-var CONFIG = JSON.parse(fs.readFileSync(path.resolve('.', 'config.json')));
-var BASE_PROFILE = fs.readFileSync(path.resolve('.', 'base-profile.ovpn'));
+var CONFIG = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'config.json')));
+var BASE_PROFILE = fs.readFileSync(path.resolve(__dirname, 'base-profile.ovpn'));
 var TOKENS = {};
 
 function certExists(certName, callback) {
