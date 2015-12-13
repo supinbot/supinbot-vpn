@@ -1,0 +1,22 @@
+{
+  "name": "supinbot-vpn",
+  "version": "0.0.1",
+  "description": "Package for supinbot to make distribution of OpenVPN certificates easier.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/Starfox64/supinbot-vpn.git"
+  },
+  "author": "Starfox64",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/Starfox64/supinbot-vpn/issues"
+  },
+  "homepage": "https://gitlab.com/Starfox64/supinbot-vpn#README",
+  "dependencies": {
+    "async": "^1.5.0",
+    "body-parser": "^1.14.1",
+    "ejs": "^2.3.4",
+    "express": "^4.13.3"
+  }
+}
