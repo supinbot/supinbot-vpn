@@ -1,4 +1,6 @@
+var sessions = require("client-sessions");
 var bodyparser = require('body-parser');
+var nunjucks = require('nunjucks');
 var express = require('express');
 var crypto = require('crypto');
 var async = require('async');
@@ -47,6 +49,44 @@ module.exports = function(SupinBot) {
 		});
 	}
 
+	function formatBytes(bytes, decimals) {
+		if (bytes == 0) return '0 Byte';
+		var k = 1024;
+		var dm = decimals + 1 || 3;
+		var sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+		var i = Math.floor(Math.log(bytes) / Math.log(k));
+		return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+	}
+
+	function getVPNUsers(callback) {
+		fs.readFile(config.get('status_path'), 'utf8', function(err, data) {
+			if (!err) {
+				var lines = data.split(/\n/);
+				var activeUsers = [];
+
+				for (var i = 3; i < lines.length; i++) {
+					var line = lines[i];
+					if (line.trim() === 'ROUTING TABLE') break;
+
+					var items = line.split(',');
+
+					var user = {};
+					user.name = items[0];
+					user.ip = items[1];
+					user.received = formatBytes(Number(items[2]), 2);
+					user.sent = formatBytes(Number(items[3]), 2);
+					user.connection = new Date(items[4]).toLocaleString();
+
+					activeUsers.push(user);
+				}
+
+				callback(null, activeUsers);
+			} else {
+				callback(err);
+			}
+		});
+	}
+
 
 	SupinBot.CommandManager.addCommand('vpntoken', function(user, channel, args, argsStr) {
 		certExists(args[0], function(err) {
@@ -55,7 +95,7 @@ module.exports = function(SupinBot) {
 				var data = {cert: args[0], expire: new Date(new Date().getTime() + config.get('ttl') * 60000)};
 				TOKENS[token] = data;
 
-				SupinBot.postMessage(user.id, 'Access Token generated for ' + args[0] + '\n ' + config.get('url') + token);
+				SupinBot.postMessage(user.id, 'Access Token generated for ' + args[0] + '\n ' + config.get('url') + 'profile/' + token);
 			} else {
 				SupinBot.postMessage(user.id, 'Certificate not found!');
 			}
@@ -67,17 +107,38 @@ module.exports = function(SupinBot) {
 
 
 	var app = express();
-	app.set('engine', 'ejs');
-	app.set('views', path.resolve(__dirname, 'views'));
-	app.use(bodyparser.urlencoded({extended: false}));
-
-	app.get('/:token?', function(req, res, next) {
-		if (req.params.token && req.params.token.length > 70) return res.sendStatus(500);
-		res.render('index.ejs', {token: req.params.token});
+	nunjucks.configure(path.resolve(__dirname, 'views'), {
+		autoescape: true,
+		express: app
 	});
 
-	app.post('/:token?', function(req, res, next) {
-		if ((req.params.token && req.params.token.length > 70) || (req.body.token && req.body.token.length > 70)) return res.sendStatus(500);
+	app.use(bodyparser.urlencoded({extended: false}));
+	app.use(sessions({
+		cookieName: 'session',
+		secret: config.get('cookie.secret'),
+		duration: config.get('cookie.duration'),
+		activeDuration: config.get('cookie.active_duration')
+	}));
+
+	app.use(function(req, res, next) {
+		if (req.session.logged) {
+			res.locals.logged = true;
+		}
+
+		next();
+	});
+
+	app.get('/', function(req, res, next) {
+		res.redirect('/profile');
+	});
+
+	app.get('/profile/:token?', function(req, res, next) {
+		if (req.params.token && req.params.token.length > 70) return res.sendStatus(500);
+		res.render('profile.html', {token: req.params.token || ''});
+	});
+
+	app.post('/profile/:token?', function(req, res, next) {
+		if (req.body.token && req.body.token.length > 70) return res.sendStatus(500);
 		var cert = useToken(req.body.token);
 
 		if (cert) {
@@ -91,8 +152,44 @@ module.exports = function(SupinBot) {
 				}
 			});
 		} else {
-			res.render('index.ejs', {token: req.body.token, error: true});
+			res.render('profile.html', {token: req.body.token || '', error: true});
 		}
+	});
+
+	app.get('/login', function(req, res, next) {
+		if (req.session.logged) return res.redirect('/monitor');
+
+		res.render('login.html', {title: 'SUPINBOT VPN - Login'});
+	});
+
+	app.post('/login', function(req, res, next) {
+		if (req.body.password === config.get('password')) {
+			req.session.logged = true;
+			res.redirect('/monitor');
+		} else {
+			res.render('login.html', {title: 'SUPINBOT VPN - Login', error: true});
+		}
+	});
+
+	app.use(function(req, res, next) {
+		if (req.session.logged) {
+			next();
+		} else {
+			res.redirect('/login');
+		}
+	});
+
+	app.get('/logout', function(req, res, next) {
+		req.session.reset();
+		res.redirect('/');
+	});
+
+	app.get('/monitor', function(req, res, next) {
+		getVPNUsers(function(err, users) {
+			if (err) return res.sendStatus(500);
+
+			res.render('monitor.html', {title: 'SUPINBOT VPN - Monitor', token: req.params.token || '', users: users});
+		});
 	});
 
 	app.listen(config.get('port'));

@@ -11,7 +11,7 @@ module.exports = function(config) {
 			default: 'ca.crt'
 		},
 		url: {
-			doc: 'The URL of the front-end',
+			doc: 'The URL of the front-end (with trailing /)',
 			format: 'url',
 			default: 'https://vpn.supinbot.ovh/'
 		},
@@ -29,6 +29,33 @@ module.exports = function(config) {
 			doc: 'The ovpn profile configuration',
 			format: String,
 			default: 'client\n'
+		},
+		status_path: {
+			doc: 'The location of openvpn-status.log',
+			format: String,
+			default: '/etc/openvpn/openvpn-status.log'
+		},
+		password: {
+			doc: 'Password used to gain access to the monitoring page',
+			format: String,
+			default: null
+		},
+		cookie: {
+			secret: {
+				doc: 'String used to encrypt the cookie',
+				format: String,
+				default: null
+			},
+			duration: {
+				doc: 'Duration of the cookie in ms',
+				format: 'nat',
+				default: 2 * 60 * 60 * 1000 // 2 hours.
+			},
+			active_duration: {
+				doc: 'if duration < active_duration, the session will be extended by active_duration ms',
+				format: 'nat',
+				default: 10 * 60 * 1000 // 10 minutes.
+			}
 		}
 	});
 };

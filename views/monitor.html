@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.2.0/list.min.js"></script>
+{% endblock %}
+
+{% block navbar %}
+<li><a href="/profile">Profile</a></li>
+<li class="active"><a href="/monitor">Monitor</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row" style="margin-top:10px">
+	<div class="col-md-10 col-md-offset-1">
+		<h2>Client Status</h2>
+		<table class="table table-striped table-hover">
+			<thead>
+				<tr>
+					<th>
+						Common Name
+					</th>
+					<th>
+						IP
+					</th>
+					<th>
+						Uploaded
+					</th>
+					<th>
+						Downloaded
+					</th>
+					<th>
+						Connected Since
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for user in users %}
+				<tr>
+					<td>
+						{{ user.name }}
+					</td>
+					<td>
+						{{ user.ip }}
+					</td>
+					<td>
+						{{ user.received }}
+					</td>
+					<td>
+						{{ user.sent }}
+					</td>
+					<td>
+						{{ user.connection }}
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+{% endblock %}
