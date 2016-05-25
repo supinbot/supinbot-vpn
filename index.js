@@ -52,7 +52,7 @@ module.exports = function(SupinBot) {
 	}
 
 	function getCertEmail(certName, callback) {
-		fs.readFile(path.resolve(config.get('certs_path'), certName + '.cert'), 'utf8', function(err, data) {
+		fs.readFile(path.resolve(config.get('certs_path'), certName + '.crt'), 'utf8', function(err, data) {
 			if (err) return callback(err);
 			var cert = x509.parseCert(data);
 			if (cert.subject.emailAddress) return callback(null, cert.subject.emailAddress);
