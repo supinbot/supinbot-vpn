@@ -1,8 +1,10 @@
 var sessions = require("client-sessions");
 var bodyparser = require('body-parser');
+var nodemailer = require('nodemailer');
 var nunjucks = require('nunjucks');
 var express = require('express');
 var crypto = require('crypto');
+var x509 = require('x509.js');
 var async = require('async');
 var path = require('path');
 var fs = require('fs');
@@ -49,8 +51,17 @@ module.exports = function(SupinBot) {
 		});
 	}
 
+	function getCertEmail(certName, callback) {
+		fs.readFile(path.resolve(config.get('certs_path'), certName + '.cert'), 'utf8', function(err, data) {
+			if (err) return callback(err);
+			var cert = x509.parseCert(data);
+			if (cert.subject.emailAddress) return callback(null, cert.subject.emailAddress);
+			callback('Certificate does not contain an email address.');
+		});
+	}
+
 	function formatBytes(bytes, decimals) {
-		if (bytes == 0) return '0 Byte';
+		if (bytes === 0) return '0 Byte';
 		var k = 1024;
 		var dm = decimals + 1 || 3;
 		var sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
@@ -88,6 +99,12 @@ module.exports = function(SupinBot) {
 	}
 
 
+	var mailer = nodemailer.createTransport({
+		host: config.get('smtp.host'),
+		port: config.get('smtp.port')
+	});
+
+
 	SupinBot.CommandManager.addCommand('vpntoken', function(user, channel, args, argsStr) {
 		certExists(args[0], function(err) {
 			if (!err) {
@@ -96,6 +113,23 @@ module.exports = function(SupinBot) {
 				TOKENS[token] = data;
 
 				SupinBot.postMessage(user.id, 'Access Token generated for ' + args[0] + '\n ' + config.get('url') + 'profile/' + token);
+
+				if (args[1] === 0) return;
+
+				getCertEmail(args[0], function(err, email) {
+					if (err) return SupinBot.postMessage(user.id, 'Failed to send email!\n' + String(err));
+
+					var mailConfig = {
+						from: config.get("smtp.from"),
+						subject: config.get("smtp.subject"),
+						to: email,
+						text: 'You may now download your OpenVPN profile.\n' + config.get('url') + 'profile/' + token
+					};
+
+					mailer.sendMail(mailConfig, function(err, data) {
+						if (err) SupinBot.postMessage(user.id, 'Failed to send email!\n' + String(err));
+					});
+				});
 			} else {
 				SupinBot.postMessage(user.id, 'Certificate not found!');
 			}
@@ -103,6 +137,7 @@ module.exports = function(SupinBot) {
 	})
 	.setDescription('Generates an access token to retrieve a VPN certificate.')
 	.addArgument('Certificate Name', 'string')
+	.addArgument('Send Email', 'int', '0')
 	.ownerOnly();
 
 

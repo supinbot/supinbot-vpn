@@ -56,6 +56,28 @@ module.exports = function(config) {
 				format: 'nat',
 				default: 10 * 60 * 1000 // 10 minutes.
 			}
+		},
+		smtp: {
+			host: {
+				doc: 'Hostname or IP address of the SMTP server',
+				format: String,
+				default: '127.0.0.1'
+			},
+			port: {
+				doc: 'The port of the SMTP server',
+				format: 'port',
+				default: 25
+			},
+			from: {
+				doc: 'The from field of the email',
+				format: String,
+				default: '"SUPINBOT VPN" <no-reply@supinbot.ovh>'
+			},
+			subject: {
+				doc: 'The subject field of the email',
+				format: String,
+				default: 'Your VPN Profile is ready!'
+			},
 		}
 	});
 };
