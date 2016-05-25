@@ -101,7 +101,8 @@ module.exports = function(SupinBot) {
 
 	var mailer = nodemailer.createTransport({
 		host: config.get('smtp.host'),
-		port: config.get('smtp.port')
+		port: config.get('smtp.port'),
+		ignoreTLS: true
 	});
 
 
