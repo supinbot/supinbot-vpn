@@ -145,7 +145,8 @@ module.exports = function(SupinBot) {
 	var app = express();
 	nunjucks.configure(path.resolve(__dirname, 'views'), {
 		autoescape: true,
-		express: app
+		express: app,
+		noCache: config.get('noCache')
 	});
 
 	app.use(bodyparser.urlencoded({extended: false}));

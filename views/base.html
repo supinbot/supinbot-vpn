@@ -3,7 +3,10 @@
 	<head>
 		<meta charset="utf-8">
 		<title>{{ title | default('SUPINBOT VPN') }}</title>
-		<link rel="stylesheet" href="https://bootswatch.com/united/bootstrap.min.css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/bootstrap.material-design/0.5.9/css/bootstrap-material-design.min.css">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/bootstrap.material-design/0.5.9/css/ripples.min.css">
 		{% block head %}{% endblock %}
 	</head>
 	<body>
@@ -28,5 +31,14 @@
 			{% block content %}{% endblock %}
 
 		</div>
+		<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/bootstrap.material-design/0.5.9/js/material.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/bootstrap.material-design/0.5.9/js/ripples.min.js"></script>
+		<script type="text/javascript">
+			$(function() {
+				$.material.init();
+			});
+		</script>
 	</body>
 </html>

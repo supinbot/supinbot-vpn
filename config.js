@@ -25,6 +25,11 @@ module.exports = function(config) {
 			format: 'port',
 			default: 8080
 		},
+		noCache: {
+			doc: 'Disable template caching',
+			format: Boolean,
+			default: true
+		},
 		profile: {
 			doc: 'The ovpn profile configuration',
 			format: String,
