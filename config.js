@@ -73,6 +73,16 @@ module.exports = function(config) {
 				format: 'port',
 				default: 25
 			},
+			login: {
+				doc: 'Login of the SMTP server',
+				format: String,
+				default: null
+			},
+			password: {
+				doc: 'Password of the SMTP server',
+				format: String,
+				default: null
+			},
 			from: {
 				doc: 'The from field of the email',
 				format: String,
