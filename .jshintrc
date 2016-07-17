@@ -1,0 +1,8 @@
+{
+	"strict": "global",
+	"esversion": 6,
+	"node": true,
+	"globals": {
+		"Promise": true
+	}
+}
