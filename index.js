@@ -7,7 +7,6 @@ const fs = require('fs');
 
 const pkg = require('./package.json');
 const TokenStore = require('./lib/token-store');
-const Profile = require('./lib/profile');
 
 module.exports = function(SupinBot) {
 	var config = SupinBot.config.loadConfig(require('./lib/config.js'));
@@ -17,6 +16,7 @@ module.exports = function(SupinBot) {
 	var tokenStoreInstance = new TokenStore(SupinBot.config.get('redis'), config.get('redisDb'), config.get('ttl'));
 	module.exports.tokenStoreInstance = tokenStoreInstance;
 
+	const Profile = require('./lib/profile');
 	const routes = require('./routes/index');
 	const sendMail = require('./lib/mailer');
 
@@ -25,17 +25,17 @@ module.exports = function(SupinBot) {
 	SupinBot.CommandManager.addCommand('vpntoken', function(user, channel, args, argsStr) {
 		co(function*() {
 			const commonName = args[0];
-			const sendMail = args[1];
+			const sendLink = args[1];
 
 			var profile = new Profile(commonName);
 
 			if (yield profile.exists()) {
-				const token = tokenStoreInstance.createToken(commonName);
+				const token = yield tokenStoreInstance.createToken(commonName);
 				const url = `${SupinBot.config.get('web.url')}vpn/profile/${token}`;
 
 				SupinBot.postMessage(user.id, `Access Token generated for ${commonName}\n${url}`);
 
-				if (sendMail) {
+				if (sendLink) {
 					const email = yield profile.getEmail();
 
 					if (email) {
