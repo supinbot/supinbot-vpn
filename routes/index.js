@@ -2,6 +2,9 @@
 
 const sessions = require("client-sessions");
 const express = require('express');
+const redis = require('redis');
+const RateLimit = require('express-rate-limit');
+const RedisStore = require('rate-limit-redis');
 const co = require('co');
 
 var config = require('../index').config;
@@ -11,6 +14,19 @@ var tokenStoreInstance = require('../index').tokenStoreInstance;
 const Profile = require('../lib/profile');
 const VPNStatus = require('../lib/vpn-status');
 var router = express.Router();
+
+var loginLimit = new RateLimit({
+	windowMs: config.get('rate_limit.window'),
+	delayMs: config.get('rate_limit.delay'),
+	max: config.get('rate_limit.max'),
+	store: new RedisStore({
+		expiry: config.get('rate_limit.window') / 1000,
+		client: redis.createClient(SupinBot.config.get('redis'), {db: config.get('rate_limit.redisDb')})
+	}),
+	handler: function(req, res) {
+		res.renderError(429);
+	}
+});
 
 router.use(sessions({
 	cookieName: 'vpn_sess',
@@ -67,7 +83,7 @@ router.get('/login', (req, res, next) => {
 	res.render('vpn/login.html', {title: 'SUPINBOT VPN - Login'});
 });
 
-router.post('/login', (req, res, next) => {
+router.post('/login', loginLimit, (req, res, next) => {
 	if (req.body.password === config.get('password')) {
 		req.vpn_sess.logged = true;
 		res.redirect('/vpn/monitor');

@@ -1,6 +1,6 @@
 {
   "name": "supinbot-vpn",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Plugin for supinbot to make distribution of OpenVPN certificates easier.",
   "main": "index.js",
   "repository": {
@@ -22,6 +22,8 @@
     "redis": "^2.6.2",
     "bluebird": "^3.4.1",
     "co": "^4.6.0",
-		"fs-promise": "^0.5.0"
+    "fs-promise": "^0.5.0",
+    "express-rate-limit": "^2.4.0",
+    "rate-limit-redis": "^1.0.4"
   }
 }
