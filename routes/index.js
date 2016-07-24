@@ -67,7 +67,7 @@ router.post('/profile/:token?', (req, res, next) => {
 		var profile = new Profile(commonName);
 		var profileData = yield profile.generateProfile();
 		if (!profileData) {
-			SupinBot.log.warn(`Cannon access ${commonName}'s certificate or key.`);
+			SupinBot.log.warn(`Cannot access ${commonName}'s certificate or key.`);
 			return res.render('vpn/profile.html', {token: token || '', error: true});
 		}
 
