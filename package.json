@@ -1,6 +1,6 @@
 {
   "name": "supinbot-vpn",
-  "version": "2.1.1",
+  "version": "3.0.0",
   "description": "Plugin for supinbot to make distribution of OpenVPN certificates easier.",
   "main": "index.js",
   "repository": {
@@ -14,16 +14,18 @@
   },
   "homepage": "https://github.com/supinbot/supinbot-vpn#README",
   "dependencies": {
-    "express": "^4.14.0",
-    "client-sessions": "^0.7.0",
-    "nodemailer": "^2.4.1",
-    "x509.js": "^1.0.0",
-    "rand-token": "^0.2.1",
-    "redis": "^2.6.2",
+    "bcrypt": "^0.8.7",
     "bluebird": "^3.4.1",
+    "client-sessions": "^0.7.0",
     "co": "^4.6.0",
+    "csurf": "^1.9.0",
+    "express": "^4.14.0",
     "fs-promise": "^0.5.0",
-    "express-rate-limit": "^2.4.0",
-    "rate-limit-redis": "^1.0.4"
+    "mongoose": "^4.5.6",
+    "nodemailer": "^2.4.1",
+    "passport": "^0.3.2",
+    "passport-slack": "0.0.6",
+    "rand-token": "^0.2.1",
+    "validator": "^5.5.0"
   }
 }

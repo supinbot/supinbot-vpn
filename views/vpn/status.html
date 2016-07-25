@@ -1,12 +1,9 @@
 {% extends 'vpn/base.html' %}
 
-{% block head %}
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.2.0/list.min.js"></script>
-{% endblock %}
-
 {% block navbar %}
 <li><a href="/vpn/profile">Profile</a></li>
-<li class="active"><a href="/vpn/monitor">Monitor</a></li>
+<li class="active"><a href="/vpn/admin/status">Status</a></li>
+<li><a href="/vpn/admin/accounts">Accounts</a></li>
 {% endblock %}
 
 {% block content %}

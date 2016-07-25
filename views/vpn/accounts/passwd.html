@@ -1,0 +1,95 @@
+{% extends 'vpn/base.html' %}
+
+{% block navbar %}
+<li><a href="/vpn/profile">Profile</a></li>
+<li><a href="/vpn/admin/status">Status</a></li>
+<li class="active"><a href="/vpn/admin/accounts">Accounts</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row" style="margin-top:10px">
+	<div class="col-md-8 col-md-offset-2">
+		<div class="well bs-component">
+			<form class="form-horizontal" method="post">
+				<fieldset>
+					<legend>Reset your password</legend>
+					{% if errors.length > 0 %}
+					<div class="alert alert-dismissible alert-danger">
+						<button type="button" class="close" data-dismiss="alert">×</button>
+						<strong>Oh snap!</strong>
+						<ul>
+							{% for error in errors %}
+							<li>{{ error }}</li>
+							{% endfor %}
+						</ul>
+					</div>
+					{% endif %}
+					{% if success %}
+					<div class="alert alert-dismissible alert-success">
+						<button type="button" class="close" data-dismiss="alert">×</button>
+						{{ success }}
+					</div>
+					{% endif %}
+					<div class="form-group{% if fieldErrs.password %} has-error{% endif %}">
+						<label for="password" class="col-lg-2 control-label">New Password</label>
+						<div class="col-lg-10">
+							<input type="password" class="form-control input-lg" id="password" name="password" placeholder="P@ssw0rd">
+						</div>
+					</div>
+					<div class="form-group" style="margin-top: 0px;">
+						<label for="strength" class="col-lg-2 control-label" style="margin-top: 0px;">Strength</label>
+						<div class="col-lg-10">
+							<div class="progress">
+								<div class="progress-bar" id="strength" style="width: 0%;"></div>
+							</div>
+						</div>
+					</div>
+					<div class="form-group{% if fieldErrs.passwordConf %} has-error{% endif %}" style="margin-top: 0px;">
+						<label for="passwordConf" class="col-lg-2 control-label">Confirm Password</label>
+						<div class="col-lg-10">
+							<input type="password" class="form-control input-lg" id="passwordConf" name="passwordConf" placeholder="P@ssw0rd">
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-lg-10 col-lg-offset-2">
+							<button type="submit" class="btn btn-success btn-raised pull-right">Reset Password</button>
+						</div>
+					</div>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block foot %}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.3.0/zxcvbn.js"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('#password').on('input', function(e) {
+			var passwdStrength = zxcvbn($(this).val());
+			var strengthPct = passwdStrength.score * 25;
+			var strength = $('#strength');
+			strength.css('width', strengthPct + '%');
+
+			strength.removeClass('progress-bar-danger progress-bar-warning progress-bar-info progress-bar-success');
+
+			switch (passwdStrength.score) {
+				case 0:
+				case 1:
+					strength.addClass('progress-bar-danger');
+					break;
+				case 2:
+					strength.addClass('progress-bar-warning');
+					break;
+				case 3:
+					strength.addClass('progress-bar-info');
+					break;
+				case 4:
+					strength.addClass('progress-bar-success');
+					break;
+			}
+		});
+	});
+</script>
+{% endblock %}

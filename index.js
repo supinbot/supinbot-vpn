@@ -1,9 +1,8 @@
 'use strict';
 
-const x509 = require('x509.js');
+const valid = require('validator');
 const path = require('path');
 const co = require('co');
-const fs = require('fs');
 
 const pkg = require('./package.json');
 const TokenStore = require('./lib/token-store');
@@ -19,43 +18,106 @@ module.exports = function(SupinBot) {
 	const Profile = require('./lib/profile');
 	const routes = require('./routes/index');
 	const sendMail = require('./lib/mailer');
+	const Account = require('./models/account');
 
 	SupinBot.WebApp.registerRoute(pkg.name, '/vpn', 'VPN', routes);
 
-	SupinBot.CommandManager.addCommand('vpntoken', function(user, channel, args, argsStr) {
+	SupinBot.CommandManager.addCommand('vpnreset', function(user, channel, args, argsStr) {
 		co(function*() {
-			const commonName = args[0];
-			const sendLink = args[1];
+			const username = args[0];
 
-			var profile = new Profile(commonName);
+			const account = yield Account.findOne({username: username});
+			if (!account) return SupinBot.postMessage(user.id, `User not found.`);
 
-			if (yield profile.exists()) {
-				const token = yield tokenStoreInstance.createToken(commonName);
-				const url = `${SupinBot.config.get('web.url')}vpn/profile/${token}`;
+			const token = yield tokenStoreInstance.createToken(username);
+			SupinBot.postMessage(user.id, `Sending password reset email to *${username}*...`);
 
-				SupinBot.postMessage(user.id, `Access Token generated for ${commonName}\n${url}`);
-
-				if (sendLink) {
-					const email = yield profile.getEmail();
-
-					if (email) {
-						try {
-							return yield sendMail(email, url);
-						} catch (e) {
-							SupinBot.log.error(e);
-						}
-					}
-
-					SupinBot.log.warn(`Failed to get ${commonName}'s email.`);
-					SupinBot.postMessage(user.id, 'Failed to send email!');
-				}
-			} else {
-				SupinBot.postMessage(user.id, 'Certificate not found!');
+			try {
+				return yield sendMail(account.email, token, username);
+			} catch (e) {
+				SupinBot.log.error(`Failed to send email to ${account.email}.`);
+				SupinBot.log.error(e);
 			}
+		}).catch((e) => {
+			throw e;
 		});
 	})
-	.setDescription('Generates an access token to retrieve a VPN certificate.')
-	.addArgument('Certificate Name', 'string')
-	.addArgument('Send Email', 'int', '0')
+	.setDescription('Sends a password reset email to a user.')
+	.addArgument('Username', 'string')
+	.ownerOnly();
+
+	SupinBot.CommandManager.addCommand('vpncreate', function(user, channel, args, argsStr) {
+		co(function*() {
+			const username = args[0];
+			const email = args[1];
+			const active = args[2] === 1;
+			const sendActivationEmail = args[3] === 1;
+			var errors = [];
+
+			if (!username || !valid.isLength(username, {min: 4, max: 30})) errors.push('The username must be betwin 4 to 30 characters');
+			if (!valid.isAlphanumeric(username)) errors.push('The username must be alphanumeric');
+
+			if (!username || !valid.isEmail(email)) errors.push('The email provided is not valid');
+			if (username && !valid.isLength(email, {max: 254})) errors.push('The email must be less than 254 characters');
+
+			if (errors.length > 0) {
+				var errMsg = 'Thats not quite right:';
+				errors.each((err) => {
+					errMsg = errMsg + '\n- ' + err;
+				});
+				return SupinBot.postMessage(user.id, errMsg);
+			}
+
+			try {
+				yield Account.create({
+					username: username.trim(),
+					email: email.trim(),
+					active: active
+				});
+			} catch (e) {
+				if (e.code == 11000) return SupinBot.postMessage(user.id, 'Thats not quite right:\n- The username and email must be unique');
+				throw e;
+			}
+
+			SupinBot.postMessage(user.id, `Account created (*${username}*).`);
+
+			if (sendActivationEmail) {
+				const token = yield tokenStoreInstance.createToken(username);
+
+				try {
+					yield sendMail(email, token, username);
+				} catch (e) {
+					SupinBot.log.error(`Failed to send email to ${email}.`);
+					SupinBot.log.error(e);
+				}
+			}
+		}).catch((e) => {
+			throw e;
+		});
+	})
+	.setDescription('Creates a new OpenVPN account.')
+	.addArgument('Username', 'string')
+	.addArgument('Email', 'string')
+	.addArgument('Active', 'int', '1')
+	.addArgument('Send activation email', 'int', '1')
+	.ownerOnly();
+
+	SupinBot.CommandManager.addCommand('vpntoggle', function(user, channel, args, argsStr) {
+		co(function*() {
+			const username = args[0];
+
+			const account = yield Account.findOne({username: username});
+			if (!account) return SupinBot.postMessage(user.id, `Account not found.`);
+
+			yield Account.update({username: username}, {$set: {active: !account.active}});
+
+			const newStatus = account.active ? 'deactivated' : 'activated';
+			SupinBot.postMessage(user.id, `Account *${username}* ${newStatus}.`);
+		}).catch((e) => {
+			throw e;
+		});
+	})
+	.setDescription('Activates or deactivates an OpenVPN account.')
+	.addArgument('Username', 'string')
 	.ownerOnly();
 };

@@ -18,11 +18,13 @@
 				<ul class="nav navbar-nav">
 					{% block navbar %}{% endblock %}
 				</ul>
-				{% if logged %}
 				<ul class="nav navbar-nav navbar-right">
-					<li><a href="/logout">Logout</a></li>
+					{% if logged %}
+					<li><a href="/vpn/admin/logout">Logout</a></li>
+					{% else %}
+					<li><a href="/vpn/admin/login">Admin CP</a></li>
+					{% endif %}
 				</ul>
-				{% endif %}
 			</div>
 		</nav>
 
@@ -40,5 +42,6 @@
 				$.material.init();
 			});
 		</script>
+		{% block foot %}{% endblock %}
 	</body>
 </html>
