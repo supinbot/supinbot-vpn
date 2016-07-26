@@ -52,17 +52,27 @@ module.exports = function(SupinBot) {
 			const email = args[1];
 			const active = args[2] === 1;
 			const sendActivationEmail = args[3] === 1;
+			var parsedEmail = '';
 			var errors = [];
+
+			if (email.match(/<mailto:.*\|.*>/)) {
+				const match = email.match(/\|.*>/);
+				if (match) {
+					parsedEmail = match[0].slice(1, -1);
+				}
+			} else {
+				parsedEmail = email;
+			}
 
 			if (!username || !valid.isLength(username, {min: 4, max: 30})) errors.push('The username must be betwin 4 to 30 characters');
 			if (!valid.isAlphanumeric(username)) errors.push('The username must be alphanumeric');
 
-			if (!username || !valid.isEmail(email)) errors.push('The email provided is not valid');
-			if (username && !valid.isLength(email, {max: 254})) errors.push('The email must be less than 254 characters');
+			if (!username || !valid.isEmail(parsedEmail)) errors.push('The email provided is not valid');
+			if (username && !valid.isLength(parsedEmail, {max: 254})) errors.push('The email must be less than 254 characters');
 
 			if (errors.length > 0) {
 				var errMsg = 'Thats not quite right:';
-				errors.each((err) => {
+				errors.forEach((err) => {
 					errMsg = errMsg + '\n- ' + err;
 				});
 				return SupinBot.postMessage(user.id, errMsg);
@@ -71,7 +81,7 @@ module.exports = function(SupinBot) {
 			try {
 				yield Account.create({
 					username: username.trim(),
-					email: email.trim(),
+					email: parsedEmail.trim(),
 					active: active
 				});
 			} catch (e) {
@@ -85,7 +95,7 @@ module.exports = function(SupinBot) {
 				const token = yield tokenStoreInstance.createToken(username);
 
 				try {
-					yield sendMail(email, token, username);
+					yield sendMail(parsedEmail, token, username);
 				} catch (e) {
 					SupinBot.log.error(`Failed to send email to ${email}.`);
 					SupinBot.log.error(e);
@@ -98,8 +108,8 @@ module.exports = function(SupinBot) {
 	.setDescription('Creates a new OpenVPN account.')
 	.addArgument('Username', 'string')
 	.addArgument('Email', 'string')
-	.addArgument('Active', 'int', '1')
-	.addArgument('Send activation email', 'int', '1')
+	.addArgument('Active', 'bool', 'true')
+	.addArgument('Send activation email', 'bool', 'true')
 	.ownerOnly();
 
 	SupinBot.CommandManager.addCommand('vpntoggle', function(user, channel, args, argsStr) {
