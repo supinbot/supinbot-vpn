@@ -124,7 +124,7 @@ router.post('/passwdreset', csrfMiddleware, (req, res, next) => {
 		res.redirect('/vpn/admin/accounts?success=true');
 
 		try {
-			yield sendMail(account.email, `${SupinBot.config.get('web.url')}vpn/password/${token}`, `${SupinBot.config.get('web.url')}vpn/profile`);
+			yield sendMail(account.email, token, username);
 		} catch (e) {
 			SupinBot.log.error(`Failed to send email to ${account.email}.`);
 			SupinBot.log.error(e);
