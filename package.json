@@ -1,6 +1,6 @@
 {
   "name": "supinbot-vpn",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "Plugin for supinbot to make distribution of OpenVPN certificates easier.",
   "main": "index.js",
   "repository": {

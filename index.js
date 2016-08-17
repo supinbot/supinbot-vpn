@@ -50,8 +50,8 @@ module.exports = function(SupinBot) {
 		co(function*() {
 			const username = args[0];
 			const email = args[1];
-			const active = args[2] === 1;
-			const sendActivationEmail = args[3] === 1;
+			const active = args[2];
+			const sendActivationEmail = args[3];
 			var parsedEmail = '';
 			var errors = [];
 
