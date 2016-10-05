@@ -32,6 +32,9 @@
 						Email
 					</th>
 					<th>
+						Last Connection
+					</th>
+					<th>
 						Status
 					</th>
 					<th>
@@ -48,6 +51,9 @@
 					</td>
 					<td>
 						{{ account.email }}
+					</td>
+					<td>
+						{{ account.formattedLastConnection }}
 					</td>
 					<td>
 						{% if account.active %}

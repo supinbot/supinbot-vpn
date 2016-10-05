@@ -27,7 +27,10 @@ router.post('/checkAccount', (req, res, next) => {
 		if (!account) return res.status(401).json({ok: false, error: 'Unknown account'});
 		if (!account.active || !account.password) return res.status(401).json({ok: false, error: 'Account deactivated'});
 
-		if (yield compareAsync(password, account.password)) return res.status(202).json({ok: true});
+		if (yield compareAsync(password, account.password)) {
+			yield Account.update({username: username}, {lastConnection: Date.now()});
+			return res.status(202).json({ok: true});
+		}
 
 		res.status(401).json({ok: false, error: 'Invalid credentials'});
 	}).catch((e) => {
