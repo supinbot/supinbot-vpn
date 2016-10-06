@@ -13,7 +13,7 @@ var Account = new mongoose.Schema({
 });
 
 Account.virtual('formattedLastConnection').get(function() {
-	return this.lastConnection ? moment(this.lastConnection).format('ddd MMM D YYYY H:mm:ss') : 'Never';
+	return this.lastConnection ? moment(this.lastConnection).format('ddd MMM D YYYY H:mm:ss ([GMT]Z)') : 'Never';
 });
 
 module.exports = db.model('Account', Account);
