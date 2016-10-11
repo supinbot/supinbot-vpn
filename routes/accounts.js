@@ -7,9 +7,9 @@ const co = require('co');
 
 var config = require('../index').config;
 var SupinBot = require('../index').SupinBot;
-var tokenStoreInstance = require('../index').tokenStoreInstance;
 
 const Account = require('../models/account');
+const TokenStore = require('../lib/token-store');
 const sendMail = require('../lib/mailer');
 
 var router = express.Router();
@@ -70,7 +70,7 @@ router.post('/create', csrfMiddleware, (req, res, next) => {
 		res.redirect('/vpn/admin/accounts?success=true');
 
 		if (sendActivationEmail) {
-			const token = yield tokenStoreInstance.createToken(username);
+			const token = yield TokenStore.createToken(username, config.get('ttl'));
 
 			try {
 				yield sendMail(email, token, username);
@@ -120,7 +120,7 @@ router.post('/passwdreset', csrfMiddleware, (req, res, next) => {
 			return res.renderError(404, 'Account Not Found');
 		}
 
-		const token = yield tokenStoreInstance.createToken(account.username);
+		const token = yield TokenStore.createToken(account.username, config.get('ttl'));
 		res.redirect('/vpn/admin/accounts?success=true');
 
 		try {

@@ -16,9 +16,11 @@ const compareAsync = bluebird.promisify(bcrypt.compare);
 
 router.post('/checkAccount', (req, res, next) => {
 	co(function*() {
+		const apiKey = req.body.apiKey;
 		const username = req.body.username;
 		const password = req.body.password;
 
+		if (apiKey != config.get('api_key')) return res.status(403).json({ok: false, error: 'Invalid API Key'});
 		if (!username || username === '') return res.status(401).json({ok: false, error: 'Invalid username'});
 		if (!password || password === '') return res.status(401).json({ok: false, error: 'Invalid password'});
 

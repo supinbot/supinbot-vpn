@@ -8,9 +8,9 @@ const co = require('co');
 
 var config = require('../index').config;
 var SupinBot = require('../index').SupinBot;
-var tokenStoreInstance = require('../index').tokenStoreInstance;
 
 const Account = require('../models/account');
+const TokenStore = require('../lib/token-store');
 
 var router = express.Router();
 
@@ -21,8 +21,8 @@ router.get('/:token?', (req, res, next) => {
 		const token = req.params.token;
 		if (!token || token === '') return res.renderError(403, 'Invalid Token');
 
-		const username = yield tokenStoreInstance.getToken(token);
-		if (!username) return res.renderError(403, 'Invalid Token');
+		const tokenData = yield TokenStore.getToken(token);
+		if (!tokenData) return res.renderError(403, 'Invalid Token');
 
 		res.render('vpn/accounts/passwd.html', {title: 'SUPINBOT VPN - Reset Password', fieldErrs: {}, errors: []});
 	}).catch((e) => {
@@ -45,13 +45,13 @@ router.post('/:token?', (req, res, next) => {
 		if (errors.length > 0)
 			return res.render('vpn/accounts/passwd.html', {title: 'SUPINBOT VPN - Reset Password', fieldErrs: fieldErrs, errors: errors});
 
-		const username = yield tokenStoreInstance.getToken(token);
-		if (!username) return res.renderError(403, 'Invalid Token');
+		const tokenData = yield TokenStore.getToken(token);
+		if (!tokenData) return res.renderError(403, 'Invalid Token');
 
 		const hash = yield hashAsync(password, 10);
 
-		yield Account.update({username: username}, {$set: {password: hash}});
-		yield tokenStoreInstance.useToken(token);
+		yield Account.update({username: tokenData.username}, {$set: {password: hash}});
+		yield TokenStore.useToken(token);
 
 		res.render('vpn/accounts/passwd.html', {title: 'SUPINBOT VPN - Reset Password', fieldErrs: fieldErrs, errors: errors, success: 'Password resset successfull!'});
 	}).catch((e) => {

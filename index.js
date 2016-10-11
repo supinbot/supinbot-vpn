@@ -5,20 +5,17 @@ const path = require('path');
 const co = require('co');
 
 const pkg = require('./package.json');
-const TokenStore = require('./lib/token-store');
 
 module.exports = function(SupinBot) {
 	var config = SupinBot.config.loadConfig(require('./lib/config.js'));
 	module.exports.config = config;
 	module.exports.SupinBot = SupinBot;
 
-	var tokenStoreInstance = new TokenStore(SupinBot.config.get('redis'), config.get('redisDb'), config.get('ttl'));
-	module.exports.tokenStoreInstance = tokenStoreInstance;
-
 	const Profile = require('./lib/profile');
 	const routes = require('./routes/index');
 	const sendMail = require('./lib/mailer');
 	const Account = require('./models/account');
+	const TokenStore = require('./lib/token-store');
 
 	SupinBot.WebApp.registerRoute(pkg.name, '/vpn', 'VPN', routes);
 
@@ -29,7 +26,7 @@ module.exports = function(SupinBot) {
 			const account = yield Account.findOne({username: username});
 			if (!account) return SupinBot.postMessage(user.id, `User not found.`);
 
-			const token = yield tokenStoreInstance.createToken(username);
+			const token = yield TokenStore.createToken(username, config.get('ttl'));
 			SupinBot.postMessage(user.id, `Sending password reset email to *${username}*...`);
 
 			try {
@@ -92,7 +89,7 @@ module.exports = function(SupinBot) {
 			SupinBot.postMessage(user.id, `Account created (*${username}*).`);
 
 			if (sendActivationEmail) {
-				const token = yield tokenStoreInstance.createToken(username);
+				const token = yield TokenStore.createToken(username, config.get('ttl'));
 
 				try {
 					yield sendMail(parsedEmail, token, username);
