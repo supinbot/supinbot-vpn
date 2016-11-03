@@ -1,6 +1,6 @@
 {
   "name": "supinbot-vpn",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Plugin for supinbot to make distribution of OpenVPN certificates easier.",
   "main": "index.js",
   "repository": {
@@ -27,6 +27,6 @@
     "passport": "^0.3.2",
     "passport-slack": "0.0.6",
     "rand-token": "^0.2.1",
-    "validator": "^5.5.0"
+    "validator": "^6.1.0"
   }
 }
